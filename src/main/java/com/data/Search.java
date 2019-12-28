@@ -106,7 +106,7 @@ public class Search {
     }
 
     // Newly added method to add search results to ArrayList
-    public static  List<Video> connectClientList(String queryTerm) {
+    private static  List<Video> connectClientList(String queryTerm) {
         YouTube youtube;
         List<Video> videos = new ArrayList<>();
         Properties properties = new Properties();
@@ -160,8 +160,7 @@ public class Search {
                     try {
                         video = new Video(rId.getVideoId(), singleVideo.getSnippet().getTitle(), singleVideo.getSnippet().getChannelTitle(), singleVideo.getSnippet().getPublishedAt(), futureImage.get());
                         videos.add(video);
-                        System.out.println("Current thread: " + Thread.currentThread().getName());
-                    }
+                        }
                     catch (ExecutionException |InterruptedException e)
                     {
                         System.out.println(e.getMessage());
@@ -173,6 +172,13 @@ public class Search {
             executor.shutdown();
         }
         return videos;
+    }
+    public static List<Video> getFutureSearchResults (String queryTerm) throws ExecutionException, InterruptedException {
+        ExecutorService service = Executors.newSingleThreadExecutor();
+        List<Video> list = service.submit(()->connectClientList(queryTerm)).get();
+        service.shutdown();
+        return list;
+
     }
 
 }

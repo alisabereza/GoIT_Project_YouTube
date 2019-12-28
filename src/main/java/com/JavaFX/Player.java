@@ -24,6 +24,7 @@ import javafx.util.Callback;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -146,13 +147,16 @@ public class Player extends Application {
 
 
         show.setOnAction(e -> {
-        List<Video> videos = Search.connectClientList(videoName.getText());
-            ObservableList<Video> observableList;
-            observableList = FXCollections.observableList(videos);
+            List<Video> videos = null;
+            try {
+                videos = Search.getFutureSearchResults(videoName.getText());
+            } catch (ExecutionException|InterruptedException ex) {
+                System.out.println(ex.getMessage());}
+            ObservableList<Video> observableList = FXCollections.observableList(Objects.requireNonNull(videos));
             table.setItems(observableList);
         });
 
-        Scene scene = new Scene(root, WIDTH, HEIGHT);
+            Scene scene = new Scene(root, WIDTH, HEIGHT);
         primaryStage.setTitle("YouTube");
         primaryStage.setScene(scene);
         primaryStage.show();

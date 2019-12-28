@@ -24,6 +24,12 @@ import javafx.util.Callback;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+
+import static com.data.Search.*;
 
 
 public class Player extends Application {
@@ -140,12 +146,10 @@ public class Player extends Application {
 
 
         show.setOnAction(e -> {
-            List<Video> videos = Search.connectClientList(videoName.getText());
-
-
-            ObservableList<Video> observableList = FXCollections.observableList(videos);
+        List<Video> videos = Search.connectClientList(videoName.getText());
+            ObservableList<Video> observableList;
+            observableList = FXCollections.observableList(videos);
             table.setItems(observableList);
-
         });
 
         Scene scene = new Scene(root, WIDTH, HEIGHT);

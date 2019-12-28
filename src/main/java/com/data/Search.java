@@ -8,6 +8,7 @@ import com.google.api.services.youtube.model.ResourceId;
 import com.google.api.services.youtube.model.SearchListResponse;
 import com.google.api.services.youtube.model.SearchResult;
 import com.google.api.services.youtube.model.Thumbnail;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 
 import java.io.IOException;
@@ -105,7 +106,7 @@ public class Search {
     }
 
     // Newly added method to add search results to ArrayList
-    public static List<Video> connectClientList(String queryTerm) {
+    public static  List<Video> connectClientList(String queryTerm) {
         YouTube youtube;
         List<Video> videos = new ArrayList<>();
         Properties properties = new Properties();
@@ -146,7 +147,8 @@ public class Search {
             searchResultList = Objects.requireNonNull(searchResponse).getItems();
             Iterator<SearchResult> iterator = searchResultList.iterator();
             Video video;
-            ExecutorService executor = Executors.newFixedThreadPool(25);
+            ExecutorService executor = Executors.newSingleThreadExecutor();
+            Future<ImageView > futureImage;
             while (iterator.hasNext()) {
 
                 SearchResult singleVideo = iterator.next();
@@ -154,11 +156,11 @@ public class Search {
 
                 if (rId.getKind().equals("youtube#video")) {
                     Thumbnail thumbnail = singleVideo.getSnippet().getThumbnails().getDefault();
-                    Callable<ImageView> task = new ImageTask(thumbnail.getUrl());
-                    Future<ImageView > future = executor.submit(task);
+                    futureImage = executor.submit(()-> new ImageView(new Image(thumbnail.getUrl())));
                     try {
-                        video = new Video(rId.getVideoId(), singleVideo.getSnippet().getTitle(), singleVideo.getSnippet().getChannelTitle(), singleVideo.getSnippet().getPublishedAt(), future.get());
+                        video = new Video(rId.getVideoId(), singleVideo.getSnippet().getTitle(), singleVideo.getSnippet().getChannelTitle(), singleVideo.getSnippet().getPublishedAt(), futureImage.get());
                         videos.add(video);
+                        System.out.println("Current thread: " + Thread.currentThread().getName());
                     }
                     catch (ExecutionException |InterruptedException e)
                     {
@@ -170,8 +172,8 @@ public class Search {
             }
             executor.shutdown();
         }
-
         return videos;
     }
+
 }
 

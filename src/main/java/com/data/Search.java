@@ -8,12 +8,12 @@ import com.google.api.services.youtube.model.ResourceId;
 import com.google.api.services.youtube.model.SearchListResponse;
 import com.google.api.services.youtube.model.SearchResult;
 import com.google.api.services.youtube.model.Thumbnail;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
+import java.util.concurrent.*;
 
 import com.JavaFX.Video;
 
@@ -31,7 +31,7 @@ public class Search {
     }
 
 
-    public static void connectClient(String queryTerm) {
+    private static void connectClient(String queryTerm) {
         YouTube youtube;
         Properties properties = new Properties();
         youtube = new YouTube.Builder(Auth.HTTP_TRANSPORT, Auth.JSON_FACTORY, request -> {
@@ -127,7 +127,7 @@ public class Search {
             e.printStackTrace();
         }
         String apiKey = properties.getProperty("youtube.apikey");
-        List<SearchResult> searchResultList = null;
+        List<SearchResult> searchResultList;
         if (search != null) {
             search.setKey(apiKey);
             search.setQ(queryTerm);
@@ -143,9 +143,10 @@ public class Search {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            searchResultList = searchResponse.getItems();
+            searchResultList = Objects.requireNonNull(searchResponse).getItems();
             Iterator<SearchResult> iterator = searchResultList.iterator();
             Video video;
+            ExecutorService executor = Executors.newFixedThreadPool(25);
             while (iterator.hasNext()) {
 
                 SearchResult singleVideo = iterator.next();
@@ -153,13 +154,22 @@ public class Search {
 
                 if (rId.getKind().equals("youtube#video")) {
                     Thumbnail thumbnail = singleVideo.getSnippet().getThumbnails().getDefault();
-                    video = new Video(rId.getVideoId(), singleVideo.getSnippet().getTitle(), singleVideo.getSnippet().getChannelTitle(), singleVideo.getSnippet().getPublishedAt(), new ImageView(new Image(thumbnail.getUrl())));
-                    videos.add(video);
+                    Callable<ImageView> task = new ImageTask(thumbnail.getUrl());
+                    Future<ImageView > future = executor.submit(task);
+                    try {
+                        video = new Video(rId.getVideoId(), singleVideo.getSnippet().getTitle(), singleVideo.getSnippet().getChannelTitle(), singleVideo.getSnippet().getPublishedAt(), future.get());
+                        videos.add(video);
+                    }
+                    catch (ExecutionException |InterruptedException e)
+                    {
+                        System.out.println(e.getMessage());
+                    }
 
                 }
-            }
-        }
 
+            }
+            executor.shutdown();
+        }
 
         return videos;
     }

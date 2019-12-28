@@ -27,24 +27,24 @@ import java.util.List;
 
 
 public class Player extends Application {
-    Group root = new Group();
+    private Group root = new Group();
     final private int WIDTH = 1260;
     final private int HEIGHT = 900;
-    VBox strings = new VBox();
-    HBox search = new HBox();
-    HBox action = new HBox();
-    HBox result = new HBox();
-    TextField videoName = new TextField();
+    private VBox strings = new VBox();
+    private HBox search = new HBox();
+    private HBox action = new HBox();
+    private HBox result = new HBox();
+    private TextField videoName = new TextField();
 
-    TableView<Video> table;
+    private TableView<Video> table;
 
-    Button show = new Button("Show");
+    private Button show = new Button("Show");
 
     public static void main(String[] args) {
         launch(args);
     }
 
-    public void playButtonTask (String videoId) {
+    private void playButtonTask (String videoId) {
         Stage stage = new Stage();
         WebView webview = new WebView();
         webview.getEngine().load(
@@ -62,16 +62,13 @@ public class Player extends Application {
         Callback<TableColumn<Video, Void>, TableCell<Video, Void>> cellFactory = new Callback<TableColumn<Video, Void>, TableCell<Video, Void>>() {
             @Override
             public TableCell<Video, Void> call(final TableColumn<Video, Void> param) {
-                final TableCell<Video, Void> cell = new TableCell<Video, Void>() {
+
+                return new TableCell<Video, Void>() {
 
                     private final Button btn = new Button("Play");
 
                     {
-                        btn.setOnAction((ActionEvent event) -> {
-                            Platform.runLater(() -> playButtonTask(getTableView().getItems().get(getIndex()).getId()));
-
-
-                        });
+                        btn.setOnAction((ActionEvent event) -> Platform.runLater(() -> playButtonTask(getTableView().getItems().get(getIndex()).getId())));
                     }
 
                     @Override
@@ -84,11 +81,9 @@ public class Player extends Application {
                         }
                     }
                 };
-
-                return cell;
             }
         };
-        playColumn.impl_setWidth(80);
+        playColumn.setMinWidth(80);
         playColumn.setCellFactory(cellFactory);
 
     }
@@ -98,47 +93,45 @@ public class Player extends Application {
     public void start(Stage primaryStage) {
 
         TableColumn<Video, String> idColumn = new TableColumn<>("Video ID");
-        idColumn.impl_setWidth(200);
+        idColumn.setMinWidth(200);
         idColumn.setCellValueFactory(new PropertyValueFactory<>("id"));
 
 
         TableColumn<Video, String> nameColumn = new TableColumn<>("Video Name");
-        nameColumn.impl_setWidth(300);
+        nameColumn.setMinWidth(300);
         nameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
 
         TableColumn<Video, String> channelColumn = new TableColumn<>("Channel");
-        channelColumn.impl_setWidth(200);
+        channelColumn.setMinWidth(200);
         channelColumn.setCellValueFactory(new PropertyValueFactory<>("channel"));
 
         TableColumn<Video, DateTime> dateColumn = new TableColumn<>("Published Date");
-        dateColumn.impl_setWidth(200);
+        dateColumn.setMinWidth(200);
         dateColumn.setCellValueFactory(new PropertyValueFactory<>("date"));
         dateColumn.setStyle("-fx-alignment: CENTER;");
-        dateColumn.setCellFactory(column -> {
-            TableCell<Video, DateTime> cell = new TableCell<Video, DateTime>() {
+        dateColumn.setCellFactory(column -> new TableCell<Video, DateTime>() {
 
-                @Override
-                protected void updateItem(DateTime item, boolean empty) {
-                    super.updateItem(item, empty);
-                    if (empty) {
-                        setText(null);
-                    } else {
-                        final ZonedDateTime dateTime = ZonedDateTime.parse(table.getItems().get(getIndex()).getDate().toString(), DateTimeFormatter.ISO_DATE_TIME);
-                        setText(dateTime.format(DateTimeFormatter.ofPattern("dd-MMM-yyyy")));
-                    }
+            @Override
+            protected void updateItem(DateTime item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty) {
+                    setText(null);
+                } else {
+                    final ZonedDateTime dateTime = ZonedDateTime.parse(table.getItems().get(getIndex()).getDate().toString(), DateTimeFormatter.ISO_DATE_TIME);
+                    setText(dateTime.format(DateTimeFormatter.ofPattern("dd-MMM-yyyy")));
                 }
-            };
-
-            return cell;
+            }
         });
 
         TableColumn<Video, ImageView> thumbColumn = new TableColumn<>("Thumbnail");
-        thumbColumn.impl_setWidth(200);
+        thumbColumn.setMinWidth(200);
         Platform.runLater(() -> thumbColumn.setCellValueFactory(new PropertyValueFactory<>("thumbnail")));
 
-        TableColumn<Video, Void> playColumn = new TableColumn("Play");
+        TableColumn playColumn = new TableColumn("Play");
         playColumn.setStyle("-fx-alignment: CENTER;");
-        Platform.runLater(() -> addViewButton(playColumn));
+        Platform.runLater(() -> {
+            addViewButton(playColumn);
+        });
 
 
         table = new TableView<>();

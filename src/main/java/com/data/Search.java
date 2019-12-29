@@ -2,7 +2,8 @@ package com.data;
 
 
 import com.Auth;
-
+import com.JavaFX.Video;
+import com.google.api.client.util.DateTime;
 import com.google.api.services.youtube.YouTube;
 import com.google.api.services.youtube.model.ResourceId;
 import com.google.api.services.youtube.model.SearchListResponse;
@@ -13,10 +14,11 @@ import javafx.scene.image.ImageView;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.LocalDateTime;
 import java.util.*;
-import java.util.concurrent.*;
-
-import com.JavaFX.Video;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class Search {
     private static final String PROPERTIES_FILENAME = "/youtube.properties";
@@ -25,12 +27,16 @@ public class Search {
 
     private static Scanner scanner = new Scanner(System.in);
 
+    //Standard methods are commented for now, but not deleted for any case
+/*
     public static void main(String[] args) {
         System.out.println("Enter NAME");
         String finder = scanner.nextLine();
         connectClient(finder);
     }
+*/
 
+/*
 
     private static void connectClient(String queryTerm) {
         YouTube youtube;
@@ -47,6 +53,7 @@ public class Search {
             System.exit(1);
         }
         YouTube.Search.List search = null;
+
         try {
             search = youtube.search().list("id,snippet");
         } catch (IOException e) {
@@ -58,7 +65,7 @@ public class Search {
             search.setQ(queryTerm);
             search.setType("video");
             search.setFields("items(id/kind,id/videoId,snippet/title,snippet/thumbnails/default/url,snippet/channelTitle,snippet/publishedAt)");
-            search.setMaxResults(NUMBER_OF_VIDEOS_RETURNED);
+
             SearchListResponse searchResponse = null;
             try {
                 searchResponse = search.execute();
@@ -104,9 +111,10 @@ public class Search {
             }
         }
     }
+*/
 
     // Newly added method to add search results to ArrayList
-    private static  List<Video> connectClientList(String queryTerm) {
+    private static List<Video> connectClientList(String queryTerm, int maxNumberToShow, int numberOfDaysToShow) {
         YouTube youtube;
         List<Video> videos = new ArrayList<>();
         Properties properties = new Properties();
@@ -122,6 +130,7 @@ public class Search {
             System.exit(1);
         }
         YouTube.Search.List search = null;
+        LocalDateTime fromDate = LocalDateTime.now().minusDays(numberOfDaysToShow);
         try {
             search = youtube.search().list("id,snippet");
         } catch (IOException e) {
@@ -134,7 +143,8 @@ public class Search {
             search.setQ(queryTerm);
             search.setType("video");
             search.setFields("items(id/kind,id/videoId,snippet/title,snippet/thumbnails/default/url,snippet/channelTitle,snippet/publishedAt)");
-            search.setMaxResults(NUMBER_OF_VIDEOS_RETURNED);
+            search.setMaxResults((long) maxNumberToShow);
+            search.setPublishedAfter(DateTime.parseRfc3339(fromDate.toString()));
             SearchListResponse searchResponse = null;
 
             try {
@@ -155,8 +165,8 @@ public class Search {
                 if (rId.getKind().equals("youtube#video")) {
                     Thumbnail thumbnail = singleVideo.getSnippet().getThumbnails().getDefault();
                     ImageView imageView = new ImageView(new Image(thumbnail.getUrl()));
-                        video = new Video(rId.getVideoId(), singleVideo.getSnippet().getTitle(), singleVideo.getSnippet().getChannelTitle(), singleVideo.getSnippet().getPublishedAt(), imageView);
-                        videos.add(video);
+                    video = new Video(rId.getVideoId(), singleVideo.getSnippet().getTitle(), singleVideo.getSnippet().getChannelTitle(), singleVideo.getSnippet().getPublishedAt(), imageView);
+                    videos.add(video);
 
                 }
 
@@ -164,9 +174,10 @@ public class Search {
         }
         return videos;
     }
-    public static List<Video> getFutureSearchResults (String queryTerm) throws ExecutionException, InterruptedException {
+
+    public static List<Video> getFutureSearchResults(String queryTerm, int maxNumberToShow, int numberOfDaysToShow) throws ExecutionException, InterruptedException {
         ExecutorService service = Executors.newSingleThreadExecutor();
-        List<Video> list = service.submit(()->connectClientList(queryTerm)).get();
+        List<Video> list = service.submit(() -> connectClientList(queryTerm, maxNumberToShow, numberOfDaysToShow)).get();
         service.shutdown();
         return list;
 

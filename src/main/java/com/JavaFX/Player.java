@@ -9,7 +9,6 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -18,7 +17,6 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
-import javafx.scene.text.TextAlignment;
 import javafx.scene.web.WebView;
 import javafx.stage.Stage;
 import javafx.util.Callback;
@@ -28,11 +26,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-
-import static com.data.Search.*;
 
 
 public class Player extends Application {
@@ -57,7 +50,7 @@ public class Player extends Application {
         launch(args);
     }
 
-    private void playButtonTask (String videoId) {
+    private void playButtonTask(String videoId) {
         Stage stage = new Stage();
         WebView webview = new WebView();
         webview.getEngine().load(
@@ -153,22 +146,31 @@ public class Player extends Application {
 
 
         show.setOnAction(e -> {
-            List<Video> videos = null;
-            try {
-                videos = Search.getFutureSearchResults(videoName.getText());
-            } catch (ExecutionException|InterruptedException ex) {
-                System.out.println(ex.getMessage());}
-            ObservableList<Video> observableList = FXCollections.observableList(Objects.requireNonNull(videos));
-            table.setItems(observableList);
+            if (!maxResult.getText().matches("[0-9]*")
+                    || !numberOfDays.getText().matches("[0-9]*")) {
+                System.out.println("Incorrect input. Number pf Days and Max Result should be numbers. Try again");
+
+            } else {
+                List<Video> videos = null;
+                int maxNumberToShow = maxResult.getText().equals("") ? 10 : Integer.parseInt(maxResult.getText());
+                int numberOfDaysToShow = numberOfDays.getText().equals("") ? 365 : Integer.parseInt(numberOfDays.getText());
+                try {
+                    videos = Search.getFutureSearchResults(videoName.getText(), maxNumberToShow, numberOfDaysToShow);
+                } catch (ExecutionException | InterruptedException ex) {
+                    System.out.println(ex.getMessage());
+                }
+                ObservableList<Video> observableList = FXCollections.observableList(Objects.requireNonNull(videos));
+                table.setItems(observableList);
+            }
         });
 
         advanced.setOnAction(e -> search.getChildren().addAll(new Text("MAX Results: "), maxResult, new Text("Number Of Days: "), numberOfDays));
 
-setScene(primaryStage);
+        setScene(primaryStage);
 
     }
 
-    private void setScene (Stage primaryStage) {
+    private void setScene(Stage primaryStage) {
         Scene scene = new Scene(root, WIDTH, HEIGHT);
         primaryStage.setTitle("YouTube");
         primaryStage.setScene(scene);
@@ -179,7 +181,7 @@ setScene(primaryStage);
         strings.getChildren().add(searchText);
         strings.getChildren().add(search);
         search.setSpacing(10);
-        search.getChildren().addAll(partOfName,videoName );
+        search.getChildren().addAll(partOfName, videoName);
         strings.getChildren().add(action);
         action.setSpacing(30);
         action.getChildren().addAll(show, advanced);

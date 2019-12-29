@@ -37,6 +37,6 @@ public class Video {
         this.channel = channel;
         this.date = date;
         this.thumbnail = thumbnail;
-    }
+            }
 
 }

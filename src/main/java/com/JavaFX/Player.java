@@ -44,6 +44,7 @@ public class Player extends Application {
     private Button advanced = new Button("Advanced");
     private Text searchText = new Text("Search video on Youtube");
     private Text partOfName = new Text("Part of video name: ");
+    private Text warning = new Text();
 
 
     public static void main(String[] args) {
@@ -148,7 +149,7 @@ public class Player extends Application {
         show.setOnAction(e -> {
             if (!maxResult.getText().matches("[0-9]*")
                     || !numberOfDays.getText().matches("[0-9]*")) {
-                System.out.println("Incorrect input. Number pf Days and Max Result should be numbers. Try again");
+                warning.setText("Incorrect input. Number pf Days and Max Result should be numbers. Try again");
 
             } else {
                 List<Video> videos = null;
@@ -185,6 +186,7 @@ public class Player extends Application {
         strings.getChildren().add(action);
         action.setSpacing(30);
         action.getChildren().addAll(show, advanced);
+        action.getChildren().add(warning);
         strings.getChildren().add(result);
         result.getChildren().add(table);
     }

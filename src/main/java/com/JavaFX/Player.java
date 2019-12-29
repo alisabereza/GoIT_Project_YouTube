@@ -9,6 +9,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -17,6 +18,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
+import javafx.scene.text.TextAlignment;
 import javafx.scene.web.WebView;
 import javafx.stage.Stage;
 import javafx.util.Callback;
@@ -42,10 +44,14 @@ public class Player extends Application {
     private HBox action = new HBox();
     private HBox result = new HBox();
     private TextField videoName = new TextField();
-
+    private TextField maxResult = new TextField();
+    private TextField numberOfDays = new TextField();
     private TableView<Video> table;
-
     private Button show = new Button("Show");
+    private Button advanced = new Button("Advanced");
+    private Text searchText = new Text("Search video on Youtube");
+    private Text partOfName = new Text("Part of video name: ");
+
 
     public static void main(String[] args) {
         launch(args);
@@ -156,26 +162,31 @@ public class Player extends Application {
             table.setItems(observableList);
         });
 
-            Scene scene = new Scene(root, WIDTH, HEIGHT);
+        advanced.setOnAction(e -> search.getChildren().addAll(new Text("MAX Results: "), maxResult, new Text("Number Of Days: "), numberOfDays));
+
+setScene(primaryStage);
+
+    }
+
+    private void setScene (Stage primaryStage) {
+        Scene scene = new Scene(root, WIDTH, HEIGHT);
         primaryStage.setTitle("YouTube");
         primaryStage.setScene(scene);
         primaryStage.show();
         root.getChildren().add(strings);
         strings.setPadding(new Insets(30, 30, 10, 30));
         strings.setSpacing(20);
-        strings.getChildren().add(new Text("Search video on Youtube"));
+        strings.getChildren().add(searchText);
         strings.getChildren().add(search);
         search.setSpacing(10);
-        search.getChildren().add(new Text("Part of video name: "));
-        search.getChildren().add(videoName);
-
+        search.getChildren().addAll(partOfName,videoName );
         strings.getChildren().add(action);
         action.setSpacing(30);
-        action.getChildren().add(show);
+        action.getChildren().addAll(show, advanced);
         strings.getChildren().add(result);
         result.getChildren().add(table);
-
     }
+
 
 }
 

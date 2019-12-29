@@ -147,8 +147,6 @@ public class Search {
             searchResultList = Objects.requireNonNull(searchResponse).getItems();
             Iterator<SearchResult> iterator = searchResultList.iterator();
             Video video;
-            ExecutorService executor = Executors.newSingleThreadExecutor();
-            Future<ImageView > futureImage;
             while (iterator.hasNext()) {
 
                 SearchResult singleVideo = iterator.next();
@@ -156,20 +154,13 @@ public class Search {
 
                 if (rId.getKind().equals("youtube#video")) {
                     Thumbnail thumbnail = singleVideo.getSnippet().getThumbnails().getDefault();
-                    futureImage = executor.submit(()-> new ImageView(new Image(thumbnail.getUrl())));
-                    try {
-                        video = new Video(rId.getVideoId(), singleVideo.getSnippet().getTitle(), singleVideo.getSnippet().getChannelTitle(), singleVideo.getSnippet().getPublishedAt(), futureImage.get());
+                    ImageView imageView = new ImageView(new Image(thumbnail.getUrl()));
+                        video = new Video(rId.getVideoId(), singleVideo.getSnippet().getTitle(), singleVideo.getSnippet().getChannelTitle(), singleVideo.getSnippet().getPublishedAt(), imageView);
                         videos.add(video);
-                        }
-                    catch (ExecutionException |InterruptedException e)
-                    {
-                        System.out.println(e.getMessage());
-                    }
 
                 }
 
             }
-            executor.shutdown();
         }
         return videos;
     }

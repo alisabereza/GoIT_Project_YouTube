@@ -9,6 +9,7 @@ import com.google.api.services.youtube.model.ResourceId;
 import com.google.api.services.youtube.model.SearchListResponse;
 import com.google.api.services.youtube.model.SearchResult;
 import com.google.api.services.youtube.model.Thumbnail;
+import javafx.scene.control.Hyperlink;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 
@@ -36,7 +37,6 @@ public class Search {
     }
 */
 
-/*
 
     private static void connectClient(String queryTerm) {
         YouTube youtube;
@@ -111,7 +111,7 @@ public class Search {
             }
         }
     }
-*/
+
 
     // Newly added method to add search results to ArrayList
     private static List<Video> connectClientList(String queryTerm, int maxNumberToShow, int numberOfDaysToShow) {
@@ -142,7 +142,7 @@ public class Search {
             search.setKey(apiKey);
             search.setQ(queryTerm);
             search.setType("video");
-            search.setFields("items(id/kind,id/videoId,snippet/title,snippet/thumbnails/default/url,snippet/channelTitle,snippet/publishedAt)");
+            search.setFields("items(id/kind,id/videoId,snippet/title,snippet/thumbnails/default/url,snippet/channelTitle,snippet/channelId,snippet/publishedAt)");
             search.setMaxResults((long) maxNumberToShow);
             search.setPublishedAfter(DateTime.parseRfc3339(fromDate.toString()));
             SearchListResponse searchResponse = null;
@@ -157,6 +157,8 @@ public class Search {
             searchResultList = Objects.requireNonNull(searchResponse).getItems();
             Iterator<SearchResult> iterator = searchResultList.iterator();
             Video video;
+            ImageView imageView;
+            Hyperlink hpl;
             while (iterator.hasNext()) {
 
                 SearchResult singleVideo = iterator.next();
@@ -164,8 +166,14 @@ public class Search {
 
                 if (rId.getKind().equals("youtube#video")) {
                     Thumbnail thumbnail = singleVideo.getSnippet().getThumbnails().getDefault();
-                    ImageView imageView = new ImageView(new Image(thumbnail.getUrl()));
-                    video = new Video(rId.getVideoId(), singleVideo.getSnippet().getTitle(), singleVideo.getSnippet().getChannelTitle(), singleVideo.getSnippet().getPublishedAt(), imageView);
+                    imageView = new ImageView(new Image(thumbnail.getUrl()));
+                    hpl = new Hyperlink(singleVideo.getSnippet().getChannelTitle());
+                    video = new Video(rId.getVideoId(),
+                            singleVideo.getSnippet().getTitle(),
+                            hpl,
+                            singleVideo.getSnippet().getChannelId(),
+                            singleVideo.getSnippet().getPublishedAt(),
+                            imageView);
                     videos.add(video);
 
                 }

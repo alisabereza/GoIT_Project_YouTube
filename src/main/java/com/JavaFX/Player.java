@@ -8,6 +8,7 @@ import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Group;
 import javafx.scene.Scene;
@@ -45,6 +46,8 @@ public class Player extends Application {
     private Text searchText = new Text("Search video on Youtube");
     private Text partOfName = new Text("Part of video name: ");
     private Text warning = new Text();
+    private Hyperlink hyperlink = new Hyperlink();
+    private WebView browser = new WebView();
 
 
     public static void main(String[] args) {
@@ -92,7 +95,6 @@ public class Player extends Application {
         };
         playColumn.setMinWidth(80);
         playColumn.setCellFactory(cellFactory);
-
     }
 
 
@@ -101,16 +103,40 @@ public class Player extends Application {
 
         TableColumn<Video, String> idColumn = new TableColumn<>("Video ID");
         idColumn.setMinWidth(200);
+        idColumn.setStyle("-fx-alignment: CENTER;");
         idColumn.setCellValueFactory(new PropertyValueFactory<>("id"));
 
 
         TableColumn<Video, String> nameColumn = new TableColumn<>("Video Name");
-        nameColumn.setMinWidth(300);
+        nameColumn.setMinWidth(500);
+        nameColumn.setStyle("-fx-alignment: CENTER-LEFT;");
         nameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
 
-        TableColumn<Video, String> channelColumn = new TableColumn<>("Channel");
+        TableColumn<Video, Hyperlink> channelColumn = new TableColumn<>("Channel");
         channelColumn.setMinWidth(200);
-        channelColumn.setCellValueFactory(new PropertyValueFactory<>("channel"));
+        channelColumn.setStyle("-fx-alignment: CENTER;");
+        channelColumn.setCellValueFactory(new PropertyValueFactory<>("channelName"));
+        channelColumn.setCellFactory(column -> new TableCell<Video, Hyperlink>() {
+
+            @Override
+            protected void updateItem(Hyperlink item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty) {
+                    setText(null);
+                } else {
+
+                    item.setOnAction(event -> {
+
+                        browser.setPrefSize(1250, 700);
+                        result.getChildren().remove(table);
+                        result.getChildren().add(browser);
+                        browser.getEngine().load("https://www.youtube.com/channel/" + table.getItems().get(getIndex()).getChannelId());
+                    });
+                    setGraphic(item);
+
+                }
+            }
+        });
 
         TableColumn<Video, DateTime> dateColumn = new TableColumn<>("Published Date");
         dateColumn.setMinWidth(200);
@@ -130,6 +156,7 @@ public class Player extends Application {
             }
         });
 
+
         TableColumn<Video, ImageView> thumbColumn = new TableColumn<>("Thumbnail");
         thumbColumn.setMinWidth(200);
         Platform.runLater(() -> thumbColumn.setCellValueFactory(new PropertyValueFactory<>("thumbnail")));
@@ -143,25 +170,36 @@ public class Player extends Application {
 
         table = new TableView<>();
         table.setPrefSize(1200, 700);
-        table.getColumns().addAll(idColumn, nameColumn, channelColumn, dateColumn, thumbColumn, playColumn);
+        table.getColumns().addAll(nameColumn, channelColumn, dateColumn, thumbColumn, playColumn);
 
 
         show.setOnAction(e -> {
             if (!maxResult.getText().matches("[0-9]*")
                     || !numberOfDays.getText().matches("[0-9]*")) {
-                warning.setText("Incorrect input. Number pf Days and Max Result should be numbers. Try again");
+                warning.setText("Incorrect input. Number of Days and Max Result should be positive numbers. Try again");
 
             } else {
+
+                if (!result.getChildren().contains(table)) {
+                    result.getChildren().remove(browser);
+                    browser.getEngine().load("");
+                    result.getChildren().add(table);
+                }
                 List<Video> videos = null;
                 int maxNumberToShow = maxResult.getText().equals("") ? 10 : Integer.parseInt(maxResult.getText());
                 int numberOfDaysToShow = numberOfDays.getText().equals("") ? 365 : Integer.parseInt(numberOfDays.getText());
                 try {
                     videos = Search.getFutureSearchResults(videoName.getText(), maxNumberToShow, numberOfDaysToShow);
+
                 } catch (ExecutionException | InterruptedException ex) {
                     System.out.println(ex.getMessage());
                 }
                 ObservableList<Video> observableList = FXCollections.observableList(Objects.requireNonNull(videos));
                 table.setItems(observableList);
+                videoName.clear();
+                maxResult.clear();
+                numberOfDays.clear();
+
             }
         });
 
@@ -188,6 +226,7 @@ public class Player extends Application {
         action.getChildren().addAll(show, advanced);
         action.getChildren().add(warning);
         strings.getChildren().add(result);
+
         result.getChildren().add(table);
     }
 

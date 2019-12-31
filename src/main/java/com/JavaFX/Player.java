@@ -8,7 +8,6 @@ import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Group;
 import javafx.scene.Scene;
@@ -18,10 +17,12 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
+import javafx.scene.text.TextAlignment;
 import javafx.scene.web.WebView;
 import javafx.stage.Stage;
 import javafx.util.Callback;
 
+import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -37,21 +38,41 @@ public class Player extends Application {
     private HBox search = new HBox();
     private HBox action = new HBox();
     private HBox result = new HBox();
+    private HBox channelInfo = new HBox();
     private TextField videoName = new TextField();
     private TextField maxResult = new TextField();
     private TextField numberOfDays = new TextField();
     private TableView<Video> table;
     private Button show = new Button("Show");
     private Button advanced = new Button("Advanced");
-    private Text searchText = new Text("Search video on Youtube");
     private Text partOfName = new Text("Part of video name: ");
     private Text warning = new Text();
     private Hyperlink hyperlink = new Hyperlink();
     private WebView browser = new WebView();
 
+    private ImageView channelAvatar = new ImageView();
+    private Text channelName = new Text();
+    private Text channelDesc = new Text();
+    private Text channelText = new Text("CHANNEL: ");
+    private TableView<Video> channelVideos;
 
-    public static void main(String[] args) {
-        launch(args);
+    private void setScene(Stage primaryStage) {
+        Scene scene = new Scene(root, WIDTH, HEIGHT);
+        primaryStage.setTitle("YouTube");
+        primaryStage.setScene(scene);
+        primaryStage.show();
+        root.getChildren().add(strings);
+        strings.setPadding(new Insets(30, 30, 10, 30));
+        strings.setSpacing(20);
+        strings.getChildren().add(search);
+        search.setSpacing(10);
+        search.getChildren().addAll(partOfName, videoName);
+        strings.getChildren().add(action);
+        action.setSpacing(30);
+        action.getChildren().addAll(show, advanced);
+        action.getChildren().add(warning);
+        strings.getChildren().add(result);
+        result.getChildren().add(table);
     }
 
     private void playButtonTask(String videoId) {
@@ -98,14 +119,12 @@ public class Player extends Application {
     }
 
 
+    public static void main(String[] args) {
+        launch(args);
+    }
+
     @Override
     public void start(Stage primaryStage) {
-
-        TableColumn<Video, String> idColumn = new TableColumn<>("Video ID");
-        idColumn.setMinWidth(200);
-        idColumn.setStyle("-fx-alignment: CENTER;");
-        idColumn.setCellValueFactory(new PropertyValueFactory<>("id"));
-
 
         TableColumn<Video, String> nameColumn = new TableColumn<>("Video Name");
         nameColumn.setMinWidth(500);
@@ -113,29 +132,94 @@ public class Player extends Application {
         nameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
 
         TableColumn<Video, Hyperlink> channelColumn = new TableColumn<>("Channel");
-        channelColumn.setMinWidth(200);
         channelColumn.setStyle("-fx-alignment: CENTER;");
+        channelColumn.setMinWidth(200);
         channelColumn.setCellValueFactory(new PropertyValueFactory<>("channelName"));
-        channelColumn.setCellFactory(column -> new TableCell<Video, Hyperlink>() {
+        channelColumn.setCellFactory(column -> {
+            return new TableCell<Video, Hyperlink>() {
 
-            @Override
-            protected void updateItem(Hyperlink item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty) {
-                    setText(null);
-                } else {
+                @Override
+                protected void updateItem(Hyperlink item, boolean empty) {
+                    super.updateItem(item, empty);
+                    if (empty) {
+                        setText(null);
+                    } else {
 
-                    item.setOnAction(event -> {
+                        item.setOnAction(event -> {
 
-                        browser.setPrefSize(1250, 700);
-                        result.getChildren().remove(table);
-                        result.getChildren().add(browser);
-                        browser.getEngine().load("https://www.youtube.com/channel/" + table.getItems().get(getIndex()).getChannelId());
-                    });
-                    setGraphic(item);
+                            VideoChannel videoChannel = null;
+                            channelVideos = new TableView<>();
+                            try {
+                                videoChannel = Search.getChannelInfo(table.getItems().get(getIndex()).getChannelId());
+                            } catch (IOException e) {
+                                System.out.println(e.getMessage());
+                            } catch (InterruptedException | ExecutionException e) {
+                                System.out.println(e.getMessage());
+                            }
 
+                            channelName.setText(Objects.requireNonNull(videoChannel).getName());
+
+                            channelName.setStyle("-fx-alignment: CENTER;");
+                            channelDesc.setText(videoChannel.getDescription());
+                            channelDesc.setTextAlignment(TextAlignment.LEFT);
+
+                            channelAvatar = videoChannel.getBannerImage();
+                            channelAvatar.setFitWidth(150);
+                            channelAvatar.setFitHeight(150);
+                            channelAvatar.autosize();
+                            strings.getChildren().remove(result);
+                            strings.getChildren().add(channelInfo);
+                            strings.getChildren().add(result);
+                            result.getChildren().remove(table);
+                            channelInfo.setSpacing(10);
+                            channelInfo.getChildren().addAll(channelAvatar, channelText, channelName, channelDesc);
+
+                            TableColumn<Video, String> channelVideoColumn = new TableColumn<>("Video");
+                            channelVideoColumn.setMinWidth(700);
+                            channelVideoColumn.setStyle("-fx-alignment: CENTER-LEFT;");
+                            channelVideoColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
+
+                            TableColumn<Video, String> channelNameColumn = new TableColumn<>("Channel");
+                            channelNameColumn.setStyle("-fx-alignment: CENTER;");
+                            channelNameColumn.setMinWidth(200);
+                            channelNameColumn.setCellValueFactory(new PropertyValueFactory<>("channelName"));
+
+                            TableColumn<Video, DateTime> channelDateColumn = new TableColumn<>("Published_Date");
+                            channelDateColumn.setMinWidth(200);
+                            channelDateColumn.setCellValueFactory(new PropertyValueFactory<>("date"));
+                            channelDateColumn.setStyle("-fx-alignment: CENTER;");
+                            channelDateColumn.setCellFactory(column -> new TableCell<Video, DateTime>() {
+
+                                @Override
+                                protected void updateItem(DateTime item, boolean empty) {
+                                    super.updateItem(item, empty);
+                                    if (empty) {
+                                        setText(null);
+                                    } else {
+                                        final ZonedDateTime dateTime = ZonedDateTime.parse(table.getItems().get(getIndex()).getDate().toString(), DateTimeFormatter.ISO_DATE_TIME);
+                                        setText(dateTime.format(DateTimeFormatter.ofPattern("dd-MMM-yyyy")));
+                                    }
+                                }
+                            });
+
+                            TableColumn channelPlayColumn = new TableColumn("Play");
+                            channelPlayColumn.setStyle("-fx-alignment: CENTER;");
+                            Platform.runLater(() -> {
+                                addViewButton(channelPlayColumn);
+                            });
+
+                            channelVideos.getColumns().addAll(channelVideoColumn, channelNameColumn, channelDateColumn, channelPlayColumn);
+                            ObservableList<Video> channelList = FXCollections.observableList(Objects.requireNonNull(videoChannel.getLatestVideos()));
+                            channelVideos.setItems(channelList);
+
+                            result.getChildren().add(channelVideos);
+
+                        });
+                        setGraphic(item);
+
+                    }
                 }
-            }
+            };
         });
 
         TableColumn<Video, DateTime> dateColumn = new TableColumn<>("Published Date");
@@ -181,7 +265,11 @@ public class Player extends Application {
             } else {
 
                 if (!result.getChildren().contains(table)) {
-                    result.getChildren().remove(browser);
+                    result.getChildren().remove(channelVideos);
+                    strings.getChildren().remove(channelInfo);
+                    channelInfo.getChildren().removeAll(channelAvatar, channelName, channelText, channelDesc);
+
+
                     browser.getEngine().load("");
                     result.getChildren().add(table);
                 }
@@ -208,28 +296,6 @@ public class Player extends Application {
         setScene(primaryStage);
 
     }
-
-    private void setScene(Stage primaryStage) {
-        Scene scene = new Scene(root, WIDTH, HEIGHT);
-        primaryStage.setTitle("YouTube");
-        primaryStage.setScene(scene);
-        primaryStage.show();
-        root.getChildren().add(strings);
-        strings.setPadding(new Insets(30, 30, 10, 30));
-        strings.setSpacing(20);
-        strings.getChildren().add(searchText);
-        strings.getChildren().add(search);
-        search.setSpacing(10);
-        search.getChildren().addAll(partOfName, videoName);
-        strings.getChildren().add(action);
-        action.setSpacing(30);
-        action.getChildren().addAll(show, advanced);
-        action.getChildren().add(warning);
-        strings.getChildren().add(result);
-
-        result.getChildren().add(table);
-    }
-
 
 }
 

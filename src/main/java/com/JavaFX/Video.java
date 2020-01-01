@@ -13,6 +13,7 @@ public class Video {
     private DateTime date;
     private ImageView thumbnail;
 
+
     public String getName() {
         return name;
     }
@@ -37,6 +38,7 @@ public class Video {
         return id;
     }
 
+
     public Video(String id, String name, Hyperlink channelName, String channelId, DateTime date, ImageView thumbnail) {
         this.id = id;
         this.name = name;
@@ -44,6 +46,6 @@ public class Video {
         this.channelId = channelId;
         this.date = date;
         this.thumbnail = thumbnail;
-    }
+        }
 
 }

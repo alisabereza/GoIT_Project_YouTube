@@ -5,8 +5,6 @@ import com.data.Search;
 import com.google.api.client.util.DateTime;
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -24,7 +22,6 @@ import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import javafx.stage.Stage;
 import javafx.util.Callback;
-import static javafx.concurrent.Worker.State;
 
 import java.io.IOException;
 import java.time.ZonedDateTime;
@@ -32,6 +29,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
+
+import static javafx.concurrent.Worker.State;
 
 
 public class Player extends Application {
@@ -93,8 +92,7 @@ public class Player extends Application {
 
         // Update the stage title when a new web page title is available
         webEngine.getLoadWorker().stateProperty().addListener((ov, oldState, newState) -> {
-            if (newState == State.SUCCEEDED)
-            {
+            if (newState == State.SUCCEEDED) {
                 //stage.setTitle(webEngine.getLocation());
                 stage.setTitle(webEngine.getTitle());
             }
@@ -105,7 +103,7 @@ public class Player extends Application {
         // Create the Browser History
         BrowserHistory browserHistory = new BrowserHistory(webView);
         history.getChildren().add(browserHistory);
-        webViewRoot.getChildren().addAll(history,webView);
+        webViewRoot.getChildren().addAll(history, webView);
         // Set the Style-properties of the VBox
         webViewRoot.setStyle("-fx-padding: 10;" +
                 "-fx-border-style: solid inside;" +

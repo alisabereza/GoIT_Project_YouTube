@@ -1,24 +1,14 @@
 package com.JavaFX;
 
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
-import javafx.scene.control.Button;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.Label;
-import javafx.scene.control.ListCell;
-import javafx.scene.control.ListView;
+import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.web.WebHistory;
 import javafx.scene.web.WebHistory.Entry;
 import javafx.scene.web.WebView;
 import javafx.util.Callback;
 
-class BrowserHistory extends HBox
-{
-    BrowserHistory(WebView webView)
-    {
+class BrowserHistory extends HBox {
+    BrowserHistory(WebView webView) {
         // Set Spacing
         this.setSpacing(20);
 
@@ -46,8 +36,9 @@ class BrowserHistory extends HBox
         backButton.setOnAction(event -> history.go(-1));
 
         forwardButton.setOnAction(event -> {
-            try {history.go(1);}
-            catch (IndexOutOfBoundsException e) {
+            try {
+                history.go(1);
+            } catch (IndexOutOfBoundsException e) {
                 System.out.println("Current video is the latest one.");
             }
         });
@@ -56,21 +47,15 @@ class BrowserHistory extends HBox
         history.currentIndexProperty().addListener((ov, oldValue, newValue) -> {
             int currentIndex = newValue.intValue();
 
-            if (currentIndex <= 0)
-            {
+            if (currentIndex <= 0) {
                 backButton.setDisable(true);
-            }
-            else
-            {
+            } else {
                 backButton.setDisable(false);
             }
 
-            if (currentIndex >= history.getEntries().size())
-            {
+            if (currentIndex >= history.getEntries().size()) {
                 forwardButton.setDisable(true);
-            }
-            else
-            {
+            } else {
                 forwardButton.setDisable(false);
             }
         });
@@ -82,25 +67,19 @@ class BrowserHistory extends HBox
         historyList.setItems(history.getEntries());
 
         // Set a cell factory to to show only the page title in the history list
-        historyList.setCellFactory(new Callback<ListView<WebHistory.Entry>, ListCell<WebHistory.Entry>>()
-        {
-            @Override public ListCell<WebHistory.Entry> call(ListView<WebHistory.Entry> list)
-            {
+        historyList.setCellFactory(new Callback<ListView<WebHistory.Entry>, ListCell<WebHistory.Entry>>() {
+            @Override
+            public ListCell<WebHistory.Entry> call(ListView<WebHistory.Entry> list) {
 
-                return new ListCell<Entry>()
-                {
+                return new ListCell<Entry>() {
                     @Override
-                    public void updateItem(Entry item, boolean empty)
-                    {
+                    public void updateItem(Entry item, boolean empty) {
                         super.updateItem(item, empty);
 
-                        if (empty)
-                        {
+                        if (empty) {
                             this.setText(null);
                             this.setGraphic(null);
-                        }
-                        else
-                        {
+                        } else {
                             String pageTitle = item.getTitle();
                             this.setText(pageTitle);
                         }
@@ -120,6 +99,6 @@ class BrowserHistory extends HBox
         });
 
         // Add the Children to the BrowserHistory
-        this.getChildren().addAll(backButton, forwardButton, label,historyList);
+        this.getChildren().addAll(backButton, forwardButton, label, historyList);
     }
 }

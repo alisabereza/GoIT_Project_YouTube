@@ -5,6 +5,8 @@ import com.data.Search;
 import com.google.api.client.util.DateTime;
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -18,9 +20,11 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
+import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import javafx.stage.Stage;
 import javafx.util.Callback;
+import static javafx.concurrent.Worker.State;
 
 import java.io.IOException;
 import java.time.ZonedDateTime;
@@ -39,6 +43,7 @@ public class Player extends Application {
     private HBox action = new HBox();
     private HBox result = new HBox();
     private HBox channelInfo = new HBox();
+
     private TextField videoName = new TextField();
     private TextField maxResult = new TextField();
     private TextField numberOfDays = new TextField();
@@ -47,14 +52,16 @@ public class Player extends Application {
     private Button advanced = new Button("Advanced");
     private Text partOfName = new Text("Part of video name: ");
     private Text warning = new Text();
-    private Hyperlink hyperlink = new Hyperlink();
     private WebView browser = new WebView();
+    private WebEngine webEngine;
 
     private ImageView channelAvatar = new ImageView();
     private Text channelName = new Text();
     private Text channelDesc = new Text();
     private Text channelText = new Text("CHANNEL: ");
     private TableView<Video> channelVideos;
+
+    private WebView webView = new WebView();
 
     private void setScene(Stage primaryStage) {
         Scene scene = new Scene(root, WIDTH, HEIGHT);
@@ -77,15 +84,39 @@ public class Player extends Application {
 
     private void playButtonTask(String videoId) {
         Stage stage = new Stage();
-        WebView webview = new WebView();
-        webview.getEngine().load(
-                "http://www.youtube.com/embed/" + videoId + "?autoplay=1"
-        );
-        webview.setPrefSize(640, 390);
 
-        stage.setScene(new Scene(webview));
+        webEngine = webView.getEngine();
+        webEngine.load(
+                "http://www.youtube.com/embed/" + videoId + "?autoplay=1"
+                //"https://www.youtube.com/watch?v="  + videoId
+        );
+
+        // Update the stage title when a new web page title is available
+        webEngine.getLoadWorker().stateProperty().addListener((ov, oldState, newState) -> {
+            if (newState == State.SUCCEEDED)
+            {
+                //stage.setTitle(webEngine.getLocation());
+                stage.setTitle(webEngine.getTitle());
+            }
+        });
+        webView.setPrefSize(640, 390);
+        final VBox webViewRoot = new VBox();
+        final HBox history = new HBox();
+        // Create the Browser History
+        BrowserHistory browserHistory = new BrowserHistory(webView);
+        history.getChildren().add(browserHistory);
+        webViewRoot.getChildren().addAll(history,webView);
+        // Set the Style-properties of the VBox
+        webViewRoot.setStyle("-fx-padding: 10;" +
+                "-fx-border-style: solid inside;" +
+                "-fx-border-width: 2;" +
+                "-fx-border-insets: 5;" +
+                "-fx-border-radius: 5;" +
+                "-fx-border-color: blue;");
+        Scene scene = new Scene(webViewRoot);
+        stage.setScene(scene);
         stage.show();
-        stage.setOnCloseRequest(event -> webview.getEngine().load(""));
+        stage.setOnCloseRequest(event -> webView.getEngine().load(""));
 
     }
 
@@ -151,9 +182,7 @@ public class Player extends Application {
                             channelVideos = new TableView<>();
                             try {
                                 videoChannel = Search.getChannelInfo(table.getItems().get(getIndex()).getChannelId());
-                            } catch (IOException e) {
-                                System.out.println(e.getMessage());
-                            } catch (InterruptedException | ExecutionException e) {
+                            } catch (IOException | InterruptedException | ExecutionException e) {
                                 System.out.println(e.getMessage());
                             }
 
@@ -204,9 +233,7 @@ public class Player extends Application {
 
                             TableColumn channelPlayColumn = new TableColumn("Play");
                             channelPlayColumn.setStyle("-fx-alignment: CENTER;");
-                            Platform.runLater(() -> {
-                                addViewButton(channelPlayColumn);
-                            });
+                            Platform.runLater(() -> addViewButton(channelPlayColumn));
 
                             channelVideos.getColumns().addAll(channelVideoColumn, channelNameColumn, channelDateColumn, channelPlayColumn);
                             ObservableList<Video> channelList = FXCollections.observableList(Objects.requireNonNull(videoChannel.getLatestVideos()));
@@ -247,9 +274,7 @@ public class Player extends Application {
 
         TableColumn playColumn = new TableColumn("Play");
         playColumn.setStyle("-fx-alignment: CENTER;");
-        Platform.runLater(() -> {
-            addViewButton(playColumn);
-        });
+        Platform.runLater(() -> addViewButton(playColumn));
 
 
         table = new TableView<>();

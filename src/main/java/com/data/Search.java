@@ -1,25 +1,24 @@
 package com.data;
 
+        import com.Auth;
+        import com.JavaFX.Video;
+        import com.JavaFX.VideoChannel;
+        import com.google.api.client.json.JsonFactory;
+        import com.google.api.client.json.jackson2.JacksonFactory;
+        import com.google.api.client.util.DateTime;
+        import com.google.api.services.youtube.YouTube;
+        import com.google.api.services.youtube.model.*;
+        import javafx.scene.control.Hyperlink;
+        import javafx.scene.image.Image;
+        import javafx.scene.image.ImageView;
 
-import com.Auth;
-import com.JavaFX.Video;
-import com.JavaFX.VideoChannel;
-import com.google.api.client.json.JsonFactory;
-import com.google.api.client.json.jackson2.JacksonFactory;
-import com.google.api.client.util.DateTime;
-import com.google.api.services.youtube.YouTube;
-import com.google.api.services.youtube.model.*;
-import javafx.scene.control.Hyperlink;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.time.LocalDateTime;
-import java.util.*;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+        import java.io.IOException;
+        import java.io.InputStream;
+        import java.time.LocalDateTime;
+        import java.util.*;
+        import java.util.concurrent.ExecutionException;
+        import java.util.concurrent.ExecutorService;
+        import java.util.concurrent.Executors;
 
 public class Search {
     private static final String PROPERTIES_FILENAME = "/youtube.properties";
@@ -35,89 +34,10 @@ public class Search {
     private static Properties properties;
     private static YouTube youtube;
 
-    //private static Scanner scanner = new Scanner(System.in);
-
-    //Standard methods are commented for now, but not deleted for any case
-
     public static void main(String[] args) throws IOException, ExecutionException, InterruptedException {
         //     System.out.println("Enter NAME");
         //      String finder = scanner.nextLine();
         getChannelInfo("UC5A8ElbxeHIJgLwf1k8wb5Q");
-    }
-
-    // This method is for test purposes. To be removed in final project
-    private static void connectClient(String queryTerm) {
-        properties = new Properties();
-        youtube = new YouTube.Builder(Auth.HTTP_TRANSPORT, Auth.JSON_FACTORY, request -> {
-        }).setApplicationName("youtube-search").build();
-        try {
-            InputStream in = Search.class.getResourceAsStream(PROPERTIES_FILENAME);
-            properties.load(in);
-
-        } catch (IOException e) {
-            System.err.println("There was an error reading " + PROPERTIES_FILENAME + ": " + e.getCause()
-                    + " : " + e.getMessage());
-            System.exit(1);
-        }
-        YouTube.Search.List search = null;
-
-        try {
-            search = youtube.search().list("id,snippet");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        String apiKey = properties.getProperty("youtube.apikey");
-        if (search != null) {
-            search.setKey(apiKey);
-            search.setQ(queryTerm);
-            search.setType("video");
-            search.setFields("items(id/kind,id/videoId,snippet/title,snippet/thumbnails/default/url,snippet/channelTitle,snippet/publishedAt)");
-
-            SearchListResponse searchResponse = null;
-            try {
-                searchResponse = search.execute();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            List<SearchResult> searchResultList;
-            if (searchResponse != null) {
-                searchResultList = searchResponse.getItems();
-                prettyPrint(searchResultList.iterator(), queryTerm);
-            }
-        }
-
-    }
-
-    // This method is for test purposes. To be removed in final project
-    private static void prettyPrint(Iterator<SearchResult> iteratorSearchResults, String query) {
-
-        System.out.println("\n=============================================================");
-        System.out.println(
-                "   First " + NUMBER_OF_VIDEOS_RETURNED + " videos for search on \"" + query + "\".");
-        System.out.println("=============================================================\n");
-
-        if (!iteratorSearchResults.hasNext()) {
-            System.out.println(" There aren't any results for your query.");
-        }
-
-        while (iteratorSearchResults.hasNext()) {
-
-            SearchResult singleVideo = iteratorSearchResults.next();
-            ResourceId rId = singleVideo.getId();
-
-
-            if (rId.getKind().equals("youtube#video")) {
-                Thumbnail thumbnail = singleVideo.getSnippet().getThumbnails().getDefault();
-
-
-                System.out.println(" Video Id: " + rId.getVideoId());
-                System.out.println(" Title: " + singleVideo.getSnippet().getTitle());
-                System.out.println(" Channel Title: " + singleVideo.getSnippet().getChannelTitle());
-                System.out.println(" Published date : " + singleVideo.getSnippet().getPublishedAt());
-                System.out.println(" Thumbnail: " + thumbnail.getUrl());
-                System.out.println("\n-------------------------------------------------------------\n");
-            }
-        }
     }
 
     // This method returns Video List
@@ -182,7 +102,7 @@ public class Search {
                             singleVideo.getSnippet().getPublishedAt(),
                             imageView);
                     videos.add(video);
-
+                    videos.sort(Comparator.reverseOrder());
                 }
 
             }
@@ -280,13 +200,11 @@ public class Search {
                             singleVideo.getSnippet().getPublishedAt(),
                             imageView);
                     videos.add(video);
-
+                    videos.sort(Comparator.reverseOrder());
                 }
-
             }
         }
         return videos;
     }
-
 }
 

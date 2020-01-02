@@ -16,6 +16,7 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import javafx.scene.web.WebEngine;
@@ -41,6 +42,7 @@ public class Player extends Application {
     private HBox search = new HBox();
     private HBox action = new HBox();
     private HBox result = new HBox();
+    private HBox channelTitle = new HBox();
     private HBox channelInfo = new HBox();
 
     private TextField videoName = new TextField();
@@ -184,21 +186,27 @@ public class Player extends Application {
                         }
 
                         channelName.setText(Objects.requireNonNull(videoChannel).getName());
-
-                        channelName.setStyle("-fx-alignment: CENTER;");
+                        channelName.setTextAlignment(TextAlignment.CENTER);
+                        channelName.setFont(Font.font(15));
+                        channelText.setTextAlignment(TextAlignment.CENTER);
+                        channelText.setFont(Font.font(15));
                         channelDesc.setText(videoChannel.getDescription());
-                        channelDesc.setTextAlignment(TextAlignment.LEFT);
+                        channelDesc.setWrappingWidth(970);
+                        channelDesc.setTextAlignment(TextAlignment.JUSTIFY);
+
 
                         channelAvatar = videoChannel.getBannerImage();
                         channelAvatar.setFitWidth(150);
                         channelAvatar.setFitHeight(150);
                         channelAvatar.autosize();
                         strings.getChildren().remove(result);
-                        strings.getChildren().add(channelInfo);
-                        strings.getChildren().add(result);
+                        strings.getChildren().addAll(channelTitle, channelInfo,result);
                         result.getChildren().remove(table);
                         channelInfo.setSpacing(10);
-                        channelInfo.getChildren().addAll(channelAvatar, channelName, channelDesc);
+                        channelInfo.getChildren().addAll(channelAvatar, channelDesc);
+                        channelTitle.setSpacing(10);
+                        channelTitle.getChildren().addAll(channelText, channelName);
+
 
                         TableColumn<Video, String> channelVideoColumn = new TableColumn<>("Video");
                         channelVideoColumn.setMinWidth(700);

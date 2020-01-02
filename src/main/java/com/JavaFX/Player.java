@@ -99,7 +99,7 @@ public class Player extends Application {
                 stage.setTitle(webEngine.getTitle());
             }
         });
-        webView.setPrefSize(640, 390);
+        webView.setPrefSize(1280, 790);
         final VBox webViewRoot = new VBox();
         final HBox history = new HBox();
         // Create the Browser History
@@ -149,6 +149,77 @@ public class Player extends Application {
         playColumn.setCellFactory(cellFactory);
     }
 
+    private void channelLinkTask (String channelID) {
+
+        VideoChannel videoChannel = null;
+        channelVideos = new TableView<>();
+        try {
+            videoChannel = Search.getChannelInfo(channelID);
+        } catch (IOException | InterruptedException | ExecutionException e) {
+            System.out.println(e.getMessage());
+        }
+
+        channelName.setText(Objects.requireNonNull(videoChannel).getName());
+        channelName.setTextAlignment(TextAlignment.CENTER);
+        channelName.setFont(Font.font(15));
+        channelText.setTextAlignment(TextAlignment.CENTER);
+        channelText.setFont(Font.font(15));
+        channelDesc.setText(videoChannel.getDescription());
+        channelDesc.setWrappingWidth(970);
+        channelDesc.setTextAlignment(TextAlignment.JUSTIFY);
+
+
+        channelAvatar = videoChannel.getBannerImage();
+        channelAvatar.setFitWidth(150);
+        channelAvatar.setFitHeight(150);
+        channelAvatar.autosize();
+        strings.getChildren().remove(result);
+        strings.getChildren().addAll(channelTitle, channelInfo,result);
+        result.getChildren().remove(table);
+        channelInfo.setSpacing(10);
+        channelInfo.getChildren().addAll(channelAvatar, channelDesc);
+        channelTitle.setSpacing(10);
+        channelTitle.getChildren().addAll(channelText, channelName);
+
+
+        TableColumn<Video, String> channelVideoColumn = new TableColumn<>("Video");
+        channelVideoColumn.setMinWidth(700);
+        channelVideoColumn.setStyle("-fx-alignment: CENTER-LEFT;");
+        channelVideoColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
+
+        TableColumn<Video, String> channelNameColumn = new TableColumn<>("Channel");
+        channelNameColumn.setStyle("-fx-alignment: CENTER;");
+        channelNameColumn.setMinWidth(200);
+        channelNameColumn.setCellValueFactory(new PropertyValueFactory<>("channelName"));
+
+        TableColumn<Video, DateTime> channelDateColumn = new TableColumn<>("Published_Date");
+        channelDateColumn.setMinWidth(200);
+        channelDateColumn.setCellValueFactory(new PropertyValueFactory<>("date"));
+        channelDateColumn.setStyle("-fx-alignment: CENTER;");
+        channelDateColumn.setCellFactory(column -> new TableCell<Video, DateTime>() {
+
+            @Override
+            protected void updateItem(DateTime item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty) {
+                    setText(null);
+                } else {
+                    final ZonedDateTime dateTime = ZonedDateTime.parse(table.getItems().get(getIndex()).getDate().toString(), DateTimeFormatter.ISO_DATE_TIME);
+                    setText(dateTime.format(DateTimeFormatter.ofPattern("dd-MMM-yyyy hh:mm")));
+                }
+            }
+        });
+
+        TableColumn channelPlayColumn = new TableColumn("Play");
+        channelPlayColumn.setStyle("-fx-alignment: CENTER;");
+        Platform.runLater(() -> addViewButton(channelPlayColumn));
+
+        channelVideos.getColumns().addAll(channelVideoColumn, channelNameColumn, channelDateColumn, channelPlayColumn);
+        ObservableList<Video> channelList = FXCollections.observableList(videoChannel.getLatestVideos());
+        channelVideos.setItems(channelList);
+
+        result.getChildren().add(channelVideos);
+    }
 
     public static void main(String[] args) {
         launch(args);
@@ -176,75 +247,7 @@ public class Player extends Application {
                 } else {
 
                     item.setOnAction(event -> {
-
-                        VideoChannel videoChannel = null;
-                        channelVideos = new TableView<>();
-                        try {
-                            videoChannel = Search.getChannelInfo(table.getItems().get(getIndex()).getChannelId());
-                        } catch (IOException | InterruptedException | ExecutionException e) {
-                            System.out.println(e.getMessage());
-                        }
-
-                        channelName.setText(Objects.requireNonNull(videoChannel).getName());
-                        channelName.setTextAlignment(TextAlignment.CENTER);
-                        channelName.setFont(Font.font(15));
-                        channelText.setTextAlignment(TextAlignment.CENTER);
-                        channelText.setFont(Font.font(15));
-                        channelDesc.setText(videoChannel.getDescription());
-                        channelDesc.setWrappingWidth(970);
-                        channelDesc.setTextAlignment(TextAlignment.JUSTIFY);
-
-
-                        channelAvatar = videoChannel.getBannerImage();
-                        channelAvatar.setFitWidth(150);
-                        channelAvatar.setFitHeight(150);
-                        channelAvatar.autosize();
-                        strings.getChildren().remove(result);
-                        strings.getChildren().addAll(channelTitle, channelInfo,result);
-                        result.getChildren().remove(table);
-                        channelInfo.setSpacing(10);
-                        channelInfo.getChildren().addAll(channelAvatar, channelDesc);
-                        channelTitle.setSpacing(10);
-                        channelTitle.getChildren().addAll(channelText, channelName);
-
-
-                        TableColumn<Video, String> channelVideoColumn = new TableColumn<>("Video");
-                        channelVideoColumn.setMinWidth(700);
-                        channelVideoColumn.setStyle("-fx-alignment: CENTER-LEFT;");
-                        channelVideoColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
-
-                        TableColumn<Video, String> channelNameColumn = new TableColumn<>("Channel");
-                        channelNameColumn.setStyle("-fx-alignment: CENTER;");
-                        channelNameColumn.setMinWidth(200);
-                        channelNameColumn.setCellValueFactory(new PropertyValueFactory<>("channelName"));
-
-                        TableColumn<Video, DateTime> channelDateColumn = new TableColumn<>("Published_Date");
-                        channelDateColumn.setMinWidth(200);
-                        channelDateColumn.setCellValueFactory(new PropertyValueFactory<>("date"));
-                        channelDateColumn.setStyle("-fx-alignment: CENTER;");
-                        channelDateColumn.setCellFactory(column -> new TableCell<Video, DateTime>() {
-
-                            @Override
-                            protected void updateItem(DateTime item, boolean empty) {
-                                super.updateItem(item, empty);
-                                if (empty) {
-                                    setText(null);
-                                } else {
-                                    final ZonedDateTime dateTime = ZonedDateTime.parse(table.getItems().get(getIndex()).getDate().toString(), DateTimeFormatter.ISO_DATE_TIME);
-                                    setText(dateTime.format(DateTimeFormatter.ofPattern("dd-MMM-yyyy hh:mm")));
-                                }
-                            }
-                        });
-
-                        TableColumn channelPlayColumn = new TableColumn("Play");
-                        channelPlayColumn.setStyle("-fx-alignment: CENTER;");
-                        Platform.runLater(() -> addViewButton(channelPlayColumn));
-
-                        channelVideos.getColumns().addAll(channelVideoColumn, channelNameColumn, channelDateColumn, channelPlayColumn);
-                        ObservableList<Video> channelList = FXCollections.observableList(videoChannel.getLatestVideos());
-                        channelVideos.setItems(channelList);
-
-                        result.getChildren().add(channelVideos);
+            channelLinkTask(table.getItems().get(getIndex()).getChannelId());
 
                     });
                     setGraphic(item);

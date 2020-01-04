@@ -1,5 +1,6 @@
 package com.JavaFX;
 
+import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.web.WebHistory;
@@ -25,6 +26,7 @@ class BrowserHistory extends HBox {
 
         // Create the Label
         Label label = new Label("History:");
+        label.alignmentProperty().set(Pos.CENTER_LEFT);
 
         // Create the Buttons
         Button backButton = new Button("Back");
@@ -63,7 +65,7 @@ class BrowserHistory extends HBox {
 
         // Create the ComboBox for the History List
         ComboBox<Entry> historyList = new ComboBox<>();
-        historyList.setPrefWidth(150);
+        historyList.setPrefWidth(500);
         historyList.setItems(history.getEntries());
 
         // Set a cell factory to to show only the page title in the history list

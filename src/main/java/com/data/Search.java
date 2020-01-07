@@ -34,12 +34,6 @@ public class Search {
     private static Properties properties;
     private static YouTube youtube;
 
-    public static void main(String[] args) throws IOException, ExecutionException, InterruptedException {
-        //     System.out.println("Enter NAME");
-        //      String finder = scanner.nextLine();
-        getChannelInfo("UC5A8ElbxeHIJgLwf1k8wb5Q");
-    }
-
     // This method returns Video List
     private static List<Video> connectClientList(String queryTerm, int maxNumberToShow, int numberOfDaysToShow) {
         List<Video> videos = new ArrayList<>();

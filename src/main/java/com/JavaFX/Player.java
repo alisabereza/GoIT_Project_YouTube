@@ -1,13 +1,11 @@
 package com.JavaFX;
 
-
 import com.data.Search;
 import com.google.api.client.util.DateTime;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
 import javafx.scene.Group;
 import javafx.scene.Scene;
@@ -27,7 +25,6 @@ import javafx.util.Callback;
 import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 
@@ -87,15 +84,11 @@ public class Player extends Application {
         Stage stage = new Stage();
 
         webEngine = webView.getEngine();
-        webEngine.load(
-                "http://www.youtube.com/embed/" + videoId + "?autoplay=1"
-                //"https://www.youtube.com/watch?v="  + videoId
-        );
+        webEngine.load("http://www.youtube.com/embed/" + videoId + "?autoplay=1");
 
         // Update the stage title when a new web page title is available
         webEngine.getLoadWorker().stateProperty().addListener((ov, oldState, newState) -> {
             if (newState == State.SUCCEEDED) {
-                //stage.setTitle(webEngine.getLocation());
                 stage.setTitle(webEngine.getTitle());
             }
         });
@@ -130,7 +123,7 @@ public class Player extends Application {
                     private final Button btn = new Button("Play");
 
                     {
-                        btn.setOnAction((ActionEvent event) -> Platform.runLater(() -> playButtonTask(getTableView().getItems().get(getIndex()).getId())));
+                        btn.setOnAction(actionEvent -> Platform.runLater(() -> playButtonTask(getTableView().getItems().get(getIndex()).getId())));
                     }
 
                     @Override
@@ -149,7 +142,14 @@ public class Player extends Application {
         playColumn.setCellFactory(cellFactory);
     }
 
-    private void channelLinkTask (String channelID) {
+    private void channelLinkTask(String channelID) {
+
+        if (!result.getChildren().contains(channelVideos)) {
+            result.getChildren().remove(channelVideos);
+            strings.getChildren().removeAll(channelTitle, channelInfo, result);
+            channelInfo.getChildren().removeAll(channelAvatar, channelName, channelText, channelDesc);
+            channelTitle.getChildren().removeAll(channelText, channelName);
+        }
 
         VideoChannel videoChannel = null;
         channelVideos = new TableView<>();
@@ -174,7 +174,7 @@ public class Player extends Application {
         channelAvatar.setFitHeight(150);
         channelAvatar.autosize();
         strings.getChildren().remove(result);
-        strings.getChildren().addAll(channelTitle, channelInfo,result);
+        strings.getChildren().addAll(channelTitle, channelInfo, result);
         result.getChildren().remove(table);
         channelInfo.setSpacing(10);
         channelInfo.getChildren().addAll(channelAvatar, channelDesc);
@@ -246,12 +246,8 @@ public class Player extends Application {
                     setText(null);
                 } else {
 
-                    item.setOnAction(event -> {
-            channelLinkTask(table.getItems().get(getIndex()).getChannelId());
-
-                    });
+                    item.setOnAction(event -> channelLinkTask(table.getItems().get(getIndex()).getChannelId()));
                     setGraphic(item);
-
                 }
             }
         });
@@ -273,7 +269,6 @@ public class Player extends Application {
                 }
             }
         });
-
 
         TableColumn<Video, ImageView> thumbColumn = new TableColumn<>("Thumbnail");
         thumbColumn.setMinWidth(200);
@@ -305,20 +300,16 @@ public class Player extends Application {
                     browser.getEngine().load("");
                     result.getChildren().add(table);
                 }
-                List<Video> videos = null;
+
                 int maxNumberToShow = maxResult.getText().equals("") ? 10 : Integer.parseInt(maxResult.getText());
                 int numberOfDaysToShow = numberOfDays.getText().equals("") ? 365 : Integer.parseInt(numberOfDays.getText());
-                try {
-                    videos = Search.getFutureSearchResults(videoName.getText(), maxNumberToShow, numberOfDaysToShow);
-
-                } catch (ExecutionException | InterruptedException ex) {
-                    System.out.println(ex.getMessage());
-                }
-                ObservableList<Video> observableList = FXCollections.observableList(Objects.requireNonNull(videos));
-                table.setItems(observableList);
-                videoName.clear();
-                maxResult.clear();
-                numberOfDays.clear();
+                new Thread(() -> {
+                    ObservableList<Video> observableList = FXCollections.observableList(Objects.requireNonNull(Search.getVideoList(videoName.getText(), maxNumberToShow, numberOfDaysToShow)));
+                    table.setItems(observableList);
+                    videoName.clear();
+                    maxResult.clear();
+                    numberOfDays.clear();
+                }).start();
 
             }
         });

@@ -136,6 +136,7 @@ public class Player extends Application {
     }
 
     private void showButtonTask() {
+        table.getItems().clear();
         if (!maxResult.getText().matches("[0-9]*")
                 || !numberOfDays.getText().matches("[0-9]*")) {
             warning.setText("Incorrect input. Number of Days and Max Result should be positive numbers. Try again");
@@ -152,8 +153,10 @@ public class Player extends Application {
                 result.getChildren().add(table);
             }
 
+
             int maxNumberToShow = maxResult.getText().equals("") ? 10 : Integer.parseInt(maxResult.getText());
             int numberOfDaysToShow = numberOfDays.getText().equals("") ? 365 : Integer.parseInt(numberOfDays.getText());
+
             new Thread(() -> {
                 ObservableList<Video> observableList = FXCollections.observableList(Objects.requireNonNull(Search.getVideoList(videoName.getText(), maxNumberToShow, numberOfDaysToShow)));
                 table.setItems(observableList);
@@ -272,7 +275,8 @@ public class Player extends Application {
         showChannelInfo(videoChannel);
         setChannelTableColumns();
 
-        ObservableList<Video> channelList = FXCollections.observableList(videoChannel.getLatestVideos());
+        ObservableList<Video> channelList = FXCollections.observableList(Objects.requireNonNull(videoChannel).getLatestVideos());
+
         channelVideos.setItems(channelList);
 
         result.getChildren().add(channelVideos);

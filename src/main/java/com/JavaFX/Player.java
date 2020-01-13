@@ -136,7 +136,6 @@ public class Player extends Application {
     }
 
     private void showButtonTask() {
-        table.getItems().clear();
         if (!maxResult.getText().matches("[0-9]*")
                 || !numberOfDays.getText().matches("[0-9]*")) {
             warning.setText("Incorrect input. Number of Days and Max Result should be positive numbers. Try again");

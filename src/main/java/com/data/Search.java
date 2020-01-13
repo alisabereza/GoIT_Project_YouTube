@@ -32,7 +32,7 @@ public class Search {
     // This method returns Video List
     public static List<Video> getVideoList(String queryTerm, int maxNumberToShow, int numberOfDaysToShow) {
 
-        YouTube.Search.List search = searchList();
+        YouTube.Search.List search = getYoutubeSearchList();
         LocalDateTime fromDate = LocalDateTime.now().minusDays(numberOfDaysToShow);
 
         if (search != null) {
@@ -66,7 +66,7 @@ public class Search {
     // This method is to get a list of Videos of certain Channel.
     private static List<Video> channelVideos(String channelID, int maxNumberToShow) {
 
-        YouTube.Search.List search = searchList();
+        YouTube.Search.List search = getYoutubeSearchList();
         if (search != null) {
             search.setKey(PROPERTIES.getProperty("youtube.apikey"));
             search.setChannelId(channelID);
@@ -77,7 +77,7 @@ public class Search {
         return searchResult(Objects.requireNonNull(search));
     }
 
-    private static YouTube.Search.List searchList() {
+    private static YouTube.Search.List getYoutubeSearchList() {
         try {
             InputStream in = Search.class.getResourceAsStream(properties_FILENAME);
             PROPERTIES.load(in);

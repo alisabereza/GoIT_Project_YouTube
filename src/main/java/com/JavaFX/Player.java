@@ -153,7 +153,8 @@ public class Player extends Application {
                 result.getChildren().add(table);
             }
 
-            int maxNumberToShow = maxResult.getText().equals("") ? 25 : Integer.parseInt(maxResult.getText());
+
+            int maxNumberToShow = maxResult.getText().equals("") ? 10 : Integer.parseInt(maxResult.getText());
             int numberOfDaysToShow = numberOfDays.getText().equals("") ? 365 : Integer.parseInt(numberOfDays.getText());
 
             new Thread(() -> {
@@ -275,6 +276,7 @@ public class Player extends Application {
         setChannelTableColumns();
 
         ObservableList<Video> channelList = FXCollections.observableList(Objects.requireNonNull(videoChannel).getLatestVideos());
+
         channelVideos.setItems(channelList);
 
         result.getChildren().add(channelVideos);

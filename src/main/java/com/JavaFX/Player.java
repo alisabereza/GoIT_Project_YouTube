@@ -48,6 +48,8 @@ public class Player extends Application {
     private TableView<Video> table;
     private Button show = new Button("Show");
     private Button advanced = new Button("Advanced");
+    private Button back = new Button("Back");
+    private Button forward = new Button("Forward");
     private Text partOfName = new Text("Part of video name: ");
     private Text warning = new Text();
     private WebView browser = new WebView();
@@ -71,9 +73,9 @@ public class Player extends Application {
         setMainTableColumns();
 
         show.setOnAction(e -> showButtonTask());
-
         advanced.setOnAction(e -> advancedButtonTask());
-
+        back.setOnAction(e -> backByHistoryTask());
+        forward.setOnAction(e -> forwardByHistoryTask());
         setMainScene(primaryStage);
 
     }
@@ -141,10 +143,10 @@ public class Player extends Application {
             warning.setText("Incorrect input. Number of Days and Max Result should be positive numbers. Try again");
 
         } else {
-
+            warning.setText("");
             if (!result.getChildren().contains(table)) {
                 result.getChildren().remove(channelVideos);
-                strings.getChildren().remove(channelInfo);
+                strings.getChildren().removeAll(channelInfo, channelTitle);
                 channelInfo.getChildren().removeAll(channelAvatar, channelName, channelText, channelDesc);
 
 
@@ -172,6 +174,12 @@ public class Player extends Application {
         }
     }
 
+    private void backByHistoryTask() {
+    }
+
+    private void forwardByHistoryTask() {
+    }
+
     private void setMainScene(Stage primaryStage) {
         Scene scene = new Scene(root, WIDTH, HEIGHT);
         primaryStage.setTitle("YouTube");
@@ -185,8 +193,7 @@ public class Player extends Application {
         search.getChildren().addAll(partOfName, videoName);
         strings.getChildren().add(action);
         action.setSpacing(30);
-        action.getChildren().addAll(show, advanced);
-        action.getChildren().add(warning);
+        action.getChildren().addAll(show, advanced, back, forward, warning);
         strings.getChildren().add(result);
         result.getChildren().add(table);
     }

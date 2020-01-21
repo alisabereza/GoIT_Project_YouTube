@@ -1,5 +1,6 @@
 package com.JavaFX;
 
+import com.data.History;
 import com.data.Search;
 import com.google.api.client.util.DateTime;
 import javafx.application.Application;
@@ -25,6 +26,7 @@ import javafx.util.Callback;
 import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 
@@ -62,6 +64,10 @@ public class Player extends Application {
     private TableView<Video> channelVideos;
 
     private WebView webView = new WebView();
+    private ObservableList<Video> observableList;
+    private History history = new History();
+    private int maxNumberToShow;
+    private int numberOfDaysToShow;
 
     public static void main(String[] args) {
         launch(args);
@@ -72,12 +78,17 @@ public class Player extends Application {
 
         setMainTableColumns();
 
-        show.setOnAction(e -> showButtonTask());
+        show.setOnAction(e -> {
+            try {
+                showButtonTask();
+            } catch (IOException ex) {
+                System.out.println(ex.getMessage());
+            }
+        });
         advanced.setOnAction(e -> advancedButtonTask());
         back.setOnAction(e -> backByHistoryTask());
         forward.setOnAction(e -> forwardByHistoryTask());
         setMainScene(primaryStage);
-
     }
 
     private void setMainTableColumns() {
@@ -137,36 +148,23 @@ public class Player extends Application {
         table.getColumns().addAll(nameColumn, channelColumn, dateColumn, thumbColumn, playColumn);
     }
 
-    private void showButtonTask() {
-        if (!maxResult.getText().matches("[0-9]*")
-                || !numberOfDays.getText().matches("[0-9]*")) {
-            warning.setText("Incorrect input. Number of Days and Max Result should be positive numbers. Try again");
+    private void showButtonTask() throws IOException {
 
-        } else {
-            warning.setText("");
-            if (!result.getChildren().contains(table)) {
-                result.getChildren().remove(channelVideos);
-                strings.getChildren().removeAll(channelInfo, channelTitle);
-                channelInfo.getChildren().removeAll(channelAvatar, channelName, channelText, channelDesc);
+        cleanUpTableView();
 
 
-                browser.getEngine().load("");
-                result.getChildren().add(table);
-            }
+        maxNumberToShow = maxResult.getText().equals("") ? 25 : Integer.parseInt(maxResult.getText());
+        numberOfDaysToShow = numberOfDays.getText().equals("") ? 365 : Integer.parseInt(numberOfDays.getText());
+        history.writeToFile(videoName.getText(), maxNumberToShow, numberOfDaysToShow);
+        history.read();
+        new Thread(() -> {
+            observableList = FXCollections.observableList(Objects.requireNonNull(Search.getVideoList(videoName.getText(), maxNumberToShow, numberOfDaysToShow)));
+            table.setItems(observableList);
+            videoName.clear();
+            maxResult.clear();
+            numberOfDays.clear();
+        }).start();
 
-
-            int maxNumberToShow = maxResult.getText().equals("") ? 10 : Integer.parseInt(maxResult.getText());
-            int numberOfDaysToShow = numberOfDays.getText().equals("") ? 365 : Integer.parseInt(numberOfDays.getText());
-
-            new Thread(() -> {
-                ObservableList<Video> observableList = FXCollections.observableList(Objects.requireNonNull(Search.getVideoList(videoName.getText(), maxNumberToShow, numberOfDaysToShow)));
-                table.setItems(observableList);
-                videoName.clear();
-                maxResult.clear();
-                numberOfDays.clear();
-            }).start();
-
-        }
     }
 
     private void advancedButtonTask() {
@@ -176,9 +174,21 @@ public class Player extends Application {
     }
 
     private void backByHistoryTask() {
+        warning.setText("");
+        try {
+            showFromHistory(history.arrows(false));
+        } catch (NoSuchElementException e) {
+            warning.setText("This one is the last. Try other direction or make new Search");
+        }
     }
 
     private void forwardByHistoryTask() {
+        warning.setText("");
+        try {
+            showFromHistory(history.arrows(true));
+        } catch (NoSuchElementException e) {
+            warning.setText("This one is the last. Try other direction or make new Search");
+        }
     }
 
     private void setMainScene(Stage primaryStage) {
@@ -346,6 +356,38 @@ public class Player extends Application {
         Platform.runLater(() -> addPlayButton(channelPlayColumn));
 
         channelVideos.getColumns().addAll(channelVideoColumn, channelNameColumn, channelDateColumn, channelPlayColumn);
+    }
+
+    private void showFromHistory(History history) {
+        maxNumberToShow = history.getMaxResult();
+        numberOfDaysToShow = history.getDays();
+        cleanUpTableView();
+        new Thread(() -> {
+            observableList = FXCollections.observableList(Objects.requireNonNull(Search.getVideoList(history.getRequest(), maxNumberToShow, numberOfDaysToShow)));
+            table.setItems(observableList);
+            videoName.clear();
+            maxResult.clear();
+            numberOfDays.clear();
+        }).start();
+    }
+
+    private void cleanUpTableView() {
+        if (!maxResult.getText().matches("[0-9]*")
+                || !numberOfDays.getText().matches("[0-9]*")) {
+            warning.setText("Incorrect input. Number of Days and Max Result should be positive numbers. Try again");
+
+        } else {
+            warning.setText("");
+            if (!result.getChildren().contains(table)) {
+                result.getChildren().remove(channelVideos);
+                strings.getChildren().removeAll(channelInfo, channelTitle);
+                channelInfo.getChildren().removeAll(channelAvatar, channelName, channelText, channelDesc);
+
+
+                browser.getEngine().load("");
+                result.getChildren().add(table);
+            }
+        }
     }
 
 }

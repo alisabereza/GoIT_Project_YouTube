@@ -152,6 +152,7 @@ public class Player extends Application {
 
         cleanUpTableView();
 
+
         maxNumberToShow = maxResult.getText().equals("") ? 25 : Integer.parseInt(maxResult.getText());
         numberOfDaysToShow = numberOfDays.getText().equals("") ? 365 : Integer.parseInt(numberOfDays.getText());
         history.writeToFile(videoName.getText(), maxNumberToShow, numberOfDaysToShow);
@@ -291,6 +292,7 @@ public class Player extends Application {
         setChannelTableColumns();
 
         ObservableList<Video> channelList = FXCollections.observableList(Objects.requireNonNull(videoChannel).getLatestVideos());
+
         channelVideos.setItems(channelList);
 
         result.getChildren().add(channelVideos);

@@ -1,20 +1,20 @@
-#YouTube API: Searching and Playing Video
+# YouTube API: Searching and Playing Video
 
 JAVA Core final project.
 
-##Project description
+## Project description
 
 This is JavaFX application created to search and play videos from YouTube using YouTube API.
 
-##Prerequisites
+## Prerequisites
 Using of YouTube API for searching requires YouTube apikey for authentication purposes.
 Valid apikey should be added to *youtube.properties* file.
 
-##Usage
+## Usage
 
 To start application, run **Main** method in **Player** class.
  
-###Initial Window
+### Initial Window
 Initial window contains *Part of video name* text field and two buttons: **Show** and **Advanced**.
 
 **Show** - clicking on this button returns 25 videos where *Part of vidoe name* matches part of video name.
@@ -30,7 +30,7 @@ Clicking on *Channel* link opens Channel information in same Window: Chanel name
 
 **Play** - clicking on Play button opens Player in separate window.
 
-###Player Window
+### Player Window
 Player window contains History information and a Player itself. When the first video is played, history is not accessible. 
 Player window can be closed to select next video to play. When next video is played, history becomes available.
 
